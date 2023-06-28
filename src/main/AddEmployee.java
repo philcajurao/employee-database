@@ -30,12 +30,14 @@ public class AddEmployee extends javax.swing.JFrame {
     Connection conn;
     PreparedStatement ps;
     ResultSet rs;
+    int row = 0;
 
     public AddEmployee() {
+        
         initComponents();
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee-database", "root", "root");
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee_database", "root", "admin");
             System.out.print(conn);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -44,6 +46,10 @@ public class AddEmployee extends javax.swing.JFrame {
         }
 
         tbload();
+        
+        saveBtn.setEnabled(false);
+        deleteBtn.setEnabled(false);
+        editBtn.setEnabled(false);
     }
 
     public void tbload() {
@@ -97,11 +103,12 @@ public class AddEmployee extends javax.swing.JFrame {
         addBtn = new javax.swing.JButton();
         saveBtn = new javax.swing.JButton();
         nextBtn = new javax.swing.JButton();
-        prevBtn = new javax.swing.JButton();
         closeBtn = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         employeeTable = new javax.swing.JTable();
         positionField = new javax.swing.JComboBox<>();
+        editBtn = new javax.swing.JButton();
+        deleteBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -173,13 +180,6 @@ public class AddEmployee extends javax.swing.JFrame {
             }
         });
 
-        prevBtn.setText("PREV");
-        prevBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                prevBtnActionPerformed(evt);
-            }
-        });
-
         closeBtn.setText("CLOSE");
         closeBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -203,9 +203,28 @@ public class AddEmployee extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        employeeTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                employeeTableMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(employeeTable);
 
         positionField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "CEO", "Chairman", "Sr. Engineer", "Mid Engineer", "Jr. Engineer" }));
+
+        editBtn.setText("EDIT");
+        editBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editBtnActionPerformed(evt);
+            }
+        });
+
+        deleteBtn.setText("DELETE");
+        deleteBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteBtnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -214,43 +233,48 @@ public class AddEmployee extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap(171, Short.MAX_VALUE)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 558, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(49, 49, 49)
                         .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(16, 16, 16)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(addBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
-                                    .addComponent(nextBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 44, Short.MAX_VALUE)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(saveBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
-                                    .addComponent(prevBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addGap(34, 34, 34)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(deleteBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(saveBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel7)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addComponent(jLabel3)
-                                            .addGap(0, 5, Short.MAX_VALUE))
-                                        .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                            .addGap(0, 0, Short.MAX_VALUE)
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING)
-                                                .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING)))))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(contactField)
-                                    .addComponent(firstnameField, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
-                                    .addComponent(lastnameField)
-                                    .addComponent(employeeIDField)
-                                    .addComponent(positionField, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addGap(16, 16, 16)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(addBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addComponent(jLabel7)
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                .addGroup(layout.createSequentialGroup()
+                                                    .addComponent(jLabel3)
+                                                    .addGap(0, 5, Short.MAX_VALUE))
+                                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                    .addGap(0, 0, Short.MAX_VALUE)
+                                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                        .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING)
+                                                        .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING)))))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(contactField)
+                                            .addComponent(firstnameField, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
+                                            .addComponent(lastnameField)
+                                            .addComponent(employeeIDField)
+                                            .addComponent(positionField, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
                         .addGap(18, 18, 18)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -281,16 +305,18 @@ public class AddEmployee extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(contactField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel7))
-                        .addGap(52, 52, 52)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(saveBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(addBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(51, 51, 51)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(addBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(prevBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(saveBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(deleteBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addContainerGap(10, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(13, Short.MAX_VALUE))
         );
 
         pack();
@@ -361,16 +387,93 @@ public class AddEmployee extends javax.swing.JFrame {
     }//GEN-LAST:event_addBtnActionPerformed
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBtnActionPerformed
-        // TODO add your handling code here:
+        if (employeeIDField.getText().equals("")) {
+
+            JOptionPane.showMessageDialog(null, "Employee ID field is empty!");
+
+        } else if (lastnameField.getText().length() <= 1) {
+
+            JOptionPane.showMessageDialog(null, "Last name field must be 2 characters atleast!");
+            lastnameField.requestFocusInWindow();
+
+        } else if (firstnameField.getText().length() <= 1) {
+
+            JOptionPane.showMessageDialog(null, "First name field must be 2 characters atleast!");
+            firstnameField.requestFocusInWindow();
+
+        } else {
+
+            int addConfirmationChoice = JOptionPane.showConfirmDialog(frame, "Are you sure you want to edit " + lastnameField.getText() + "'s information?", "Confirm employee details", JOptionPane.YES_NO_OPTION);
+            if (addConfirmationChoice == JOptionPane.YES_OPTION) {
+
+                DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+                model.setRowCount(0);
+                String sql = "UPDATE employees SET lastname='"+lastnameField.getText()+"', firstname='"+firstnameField.getText()+"', position='"+positionField.getSelectedItem()+"', contact='"+contactField.getText()+"' WHERE employeeID='"+employeeIDField.getText()+"' ";
+                try {
+                    ps = conn.prepareStatement(sql);
+
+                    ps.executeUpdate();
+
+                    JOptionPane.showMessageDialog(null, "Employee Updated");
+                    rs.close();
+                    ps.close();
+
+                    employeeIDField.setText(null);
+                    lastnameField.setText(null);
+                    firstnameField.setText(null);
+                    positionField.setSelectedIndex(0);
+                    contactField.setText(null);
+
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, e);
+                } finally {
+                    try {
+                        rs.close();
+                        ps.close();
+                    } catch (Exception e) {
+                    }
+                    tbload();
+                    
+                    saveBtn.setEnabled(false);
+                    deleteBtn.setEnabled(false);
+                    editBtn.setEnabled(false);
+                    addBtn.setEnabled(true);
+                                        
+                }
+            } else {
+                // Close the dialog
+                this.dispose();
+            }
+
+        }
     }//GEN-LAST:event_saveBtnActionPerformed
 
     private void nextBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextBtnActionPerformed
-        // TODO add your handling code here:
+        
+        int rowCount = employeeTable.getRowCount();
+        DefaultTableModel model = (DefaultTableModel)employeeTable.getModel();
+        
+        employeeIDField.setFocusable(false);
+        lastnameField.setFocusable(false);
+        firstnameField.setFocusable(false);
+        positionField.setEnabled(false);
+        contactField.setFocusable(false);
+        
+        if(row < rowCount){
+            employeeIDField.setText(model.getValueAt(row, 0).toString());
+            lastnameField.setText(model.getValueAt(row, 1).toString());
+            firstnameField.setText(model.getValueAt(row, 2).toString());
+            positionField.setSelectedItem(model.getValueAt(row, 3).toString());
+            contactField.setText(model.getValueAt(row, 4).toString());
+            row++;
+            
+            if(row == rowCount){
+                row = 0;
+            }
+            
+        }
+        
     }//GEN-LAST:event_nextBtnActionPerformed
-
-    private void prevBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prevBtnActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_prevBtnActionPerformed
 
     private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
         frame = new JFrame("Exit");
@@ -401,6 +504,46 @@ public class AddEmployee extends javax.swing.JFrame {
     private void firstnameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_firstnameFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_firstnameFieldActionPerformed
+
+    private void employeeTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_employeeTableMouseClicked
+        
+        
+        int row = employeeTable.getSelectedRow();
+        DefaultTableModel model = (DefaultTableModel)employeeTable.getModel();
+        
+        employeeIDField.setText(model.getValueAt(row, 0).toString());
+        lastnameField.setText(model.getValueAt(row, 1).toString());
+        firstnameField.setText(model.getValueAt(row, 2).toString());
+        positionField.setSelectedItem(model.getValueAt(row, 3).toString());
+        contactField.setText(model.getValueAt(row, 4).toString());
+        
+        employeeIDField.setFocusable(false);
+        lastnameField.setFocusable(false);
+        firstnameField.setFocusable(false);
+        positionField.setEnabled(false);
+        contactField.setFocusable(false);
+        
+        
+        addBtn.setEnabled(false);
+        
+        deleteBtn.setEnabled(true);
+        editBtn.setEnabled(true);
+                
+    }//GEN-LAST:event_employeeTableMouseClicked
+
+    private void editBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editBtnActionPerformed
+        saveBtn.setEnabled(true);
+        
+        employeeIDField.setFocusable(true);
+        lastnameField.setFocusable(true);
+        firstnameField.setFocusable(true);
+        positionField.setEnabled(true);
+        contactField.setFocusable(true);
+    }//GEN-LAST:event_editBtnActionPerformed
+
+    private void deleteBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteBtnActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_deleteBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -435,12 +578,15 @@ public class AddEmployee extends javax.swing.JFrame {
                 new AddEmployee().setVisible(true);
             }
         });
+        
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addBtn;
     private javax.swing.JButton closeBtn;
     private javax.swing.JTextField contactField;
+    private javax.swing.JButton deleteBtn;
+    private javax.swing.JButton editBtn;
     private javax.swing.JTextField employeeIDField;
     private javax.swing.JTable employeeTable;
     private javax.swing.JTextField firstnameField;
@@ -454,7 +600,6 @@ public class AddEmployee extends javax.swing.JFrame {
     private javax.swing.JTextField lastnameField;
     private javax.swing.JButton nextBtn;
     private javax.swing.JComboBox<String> positionField;
-    private javax.swing.JButton prevBtn;
     private javax.swing.JButton saveBtn;
     // End of variables declaration//GEN-END:variables
 }
