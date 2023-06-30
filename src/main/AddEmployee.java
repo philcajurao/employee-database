@@ -17,6 +17,8 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -30,14 +32,14 @@ public class AddEmployee extends javax.swing.JFrame {
     Connection conn;
     PreparedStatement ps;
     ResultSet rs;
-    int row = 0;
+    int row = -1;
 
     public AddEmployee() {
-        
+
         initComponents();
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee_database", "root", "admin");
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee-database", "root", "root");
             System.out.print(conn);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
@@ -46,10 +48,11 @@ public class AddEmployee extends javax.swing.JFrame {
         }
 
         tbload();
-        
+
         saveBtn.setEnabled(false);
         deleteBtn.setEnabled(false);
         editBtn.setEnabled(false);
+        clearBtn.setEnabled(false);
     }
 
     public void tbload() {
@@ -81,6 +84,60 @@ public class AddEmployee extends javax.swing.JFrame {
 
     }
 
+    public void deleteRow(String id) {
+        String query = "DELETE FROM `employees` WHERE employeeID = ?";
+        try {
+            ps = conn.prepareStatement(query);
+            ps.setString(1, id);
+            ps.execute();
+            JOptionPane.showMessageDialog(this, "Deleted");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "" + e);
+        }
+    }
+    
+    public boolean contactClear() {
+        try {
+            contactField.setText("");
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public boolean isDuplicate(String id) {
+        String query = "SELECT employeeID FROM employees WHERE employeeID = ?";
+        try {
+            ps = conn.prepareStatement(query);
+            ps.setString(1, id); // Set the parameter value
+            rs = ps.executeQuery(); // Execute the query
+            if (rs.next()) {
+                return true;// Get the value from the result set
+            } else {
+                return false; // or any appropriate value if no result is found
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e);
+            return true;
+        }
+
+    }
+    
+    public boolean checkIfNumber(String input) {
+        try {
+            Double.parseDouble(input);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public int generateID() {
+        Random random = new Random();
+        int randomNumber = 101000000 + random.nextInt(1000000);
+        return randomNumber;
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -109,6 +166,8 @@ public class AddEmployee extends javax.swing.JFrame {
         positionField = new javax.swing.JComboBox<>();
         editBtn = new javax.swing.JButton();
         deleteBtn = new javax.swing.JButton();
+        clearBtn = new javax.swing.JButton();
+        prevBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -147,15 +206,46 @@ public class AddEmployee extends javax.swing.JFrame {
             }
         });
 
+        lastnameField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                lastnameFieldFocusLost(evt);
+            }
+        });
         lastnameField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lastnameFieldActionPerformed(evt);
             }
         });
+        lastnameField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                lastnameKeyTyped(evt);
+            }
+        });
 
+        firstnameField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                firstnameFieldFocusLost(evt);
+            }
+        });
         firstnameField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 firstnameFieldActionPerformed(evt);
+            }
+        });
+
+        contactField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                contactFieldFocusLost(evt);
+            }
+        });
+        contactField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                contactFieldActionPerformed(evt);
+            }
+        });
+        contactField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                contactFieldKeyTyped(evt);
             }
         });
 
@@ -226,6 +316,20 @@ public class AddEmployee extends javax.swing.JFrame {
             }
         });
 
+        clearBtn.setText("CLEAR");
+        clearBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearBtnActionPerformed(evt);
+            }
+        });
+
+        prevBtn.setText("PREV");
+        prevBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                prevBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -239,14 +343,6 @@ public class AddEmployee extends javax.swing.JFrame {
                         .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(34, 34, 34)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(deleteBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(saveBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(16, 16, 16)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -270,11 +366,26 @@ public class AddEmployee extends javax.swing.JFrame {
                                             .addComponent(firstnameField, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
                                             .addComponent(lastnameField)
                                             .addComponent(employeeIDField)
-                                            .addComponent(positionField, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
+                                            .addComponent(positionField, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(34, 34, 34)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(clearBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(deleteBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(saveBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE)))))
                         .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(prevBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(30, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -315,7 +426,10 @@ public class AddEmployee extends javax.swing.JFrame {
                             .addComponent(deleteBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(clearBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(prevBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(13, Short.MAX_VALUE))
         );
 
@@ -323,6 +437,7 @@ public class AddEmployee extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private JFrame frame;
+
     private void addBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBtnActionPerformed
 
         if (employeeIDField.getText().equals("")) {
@@ -408,7 +523,7 @@ public class AddEmployee extends javax.swing.JFrame {
 
                 DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
                 model.setRowCount(0);
-                String sql = "UPDATE employees SET lastname='"+lastnameField.getText()+"', firstname='"+firstnameField.getText()+"', position='"+positionField.getSelectedItem()+"', contact='"+contactField.getText()+"' WHERE employeeID='"+employeeIDField.getText()+"' ";
+                String sql = "UPDATE employees SET lastname='" + lastnameField.getText() + "', firstname='" + firstnameField.getText() + "', position='" + positionField.getSelectedItem() + "', contact='" + contactField.getText() + "' WHERE employeeID='" + employeeIDField.getText() + "' ";
                 try {
                     ps = conn.prepareStatement(sql);
 
@@ -433,46 +548,45 @@ public class AddEmployee extends javax.swing.JFrame {
                     } catch (Exception e) {
                     }
                     tbload();
-                    
+
                     saveBtn.setEnabled(false);
                     deleteBtn.setEnabled(false);
                     editBtn.setEnabled(false);
                     addBtn.setEnabled(true);
-                                        
+
                 }
             } else {
                 // Close the dialog
-                this.dispose();
+//                this.dispose();
             }
 
         }
     }//GEN-LAST:event_saveBtnActionPerformed
 
     private void nextBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextBtnActionPerformed
-        
         int rowCount = employeeTable.getRowCount();
-        DefaultTableModel model = (DefaultTableModel)employeeTable.getModel();
-        
+        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+        if (row == rowCount - 1) {
+            row = 0;
+        } else {
+            row++;
+        }
+
         employeeIDField.setFocusable(false);
         lastnameField.setFocusable(false);
         firstnameField.setFocusable(false);
         positionField.setEnabled(false);
         contactField.setFocusable(false);
-        
-        if(row < rowCount){
-            employeeIDField.setText(model.getValueAt(row, 0).toString());
-            lastnameField.setText(model.getValueAt(row, 1).toString());
-            firstnameField.setText(model.getValueAt(row, 2).toString());
-            positionField.setSelectedItem(model.getValueAt(row, 3).toString());
-            contactField.setText(model.getValueAt(row, 4).toString());
-            row++;
-            
-            if(row == rowCount){
-                row = 0;
-            }
-            
-        }
-        
+
+        employeeTable.changeSelection(row, 0, false, false);
+        employeeIDField.setText(model.getValueAt(row, 0).toString());
+        lastnameField.setText(model.getValueAt(row, 1).toString());
+        firstnameField.setText(model.getValueAt(row, 2).toString());
+        positionField.setSelectedItem(model.getValueAt(row, 3).toString());
+        contactField.setText(model.getValueAt(row, 4).toString());
+
+        clearBtn.setEnabled(true);
+
     }//GEN-LAST:event_nextBtnActionPerformed
 
     private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
@@ -488,52 +602,60 @@ public class AddEmployee extends javax.swing.JFrame {
 
     private void employeeIDFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_employeeIDFieldFocusGained
         if (employeeIDField.getText().equals("")) {
-            Random random = new Random();
-            int randomNumber = 101000000 + random.nextInt(1000000);
+            String randomNumberString = "";
+            boolean isDuplicate = true;
+            while (isDuplicate == true) {
+                randomNumberString = Integer.toString(generateID());
+                isDuplicate = isDuplicate(randomNumberString);
+                employeeIDField.setFocusable(false);
+                lastnameField.setFocusable(false);
+                firstnameField.setFocusable(false);
+                positionField.setEnabled(false);
+                contactField.setFocusable(false);
+            }
 
-            String randomNumberString = Integer.toString(randomNumber);
             employeeIDField.setText(randomNumberString);
+            employeeIDField.setFocusable(true);
+            lastnameField.setFocusable(true);
+            firstnameField.setFocusable(true);
+            positionField.setEnabled(true);
+            contactField.setFocusable(true);
+
         }
 
     }//GEN-LAST:event_employeeIDFieldFocusGained
-
-    private void lastnameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lastnameFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_lastnameFieldActionPerformed
 
     private void firstnameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_firstnameFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_firstnameFieldActionPerformed
 
     private void employeeTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_employeeTableMouseClicked
-        
-        
+
         int row = employeeTable.getSelectedRow();
-        DefaultTableModel model = (DefaultTableModel)employeeTable.getModel();
-        
+        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+
         employeeIDField.setText(model.getValueAt(row, 0).toString());
         lastnameField.setText(model.getValueAt(row, 1).toString());
         firstnameField.setText(model.getValueAt(row, 2).toString());
         positionField.setSelectedItem(model.getValueAt(row, 3).toString());
         contactField.setText(model.getValueAt(row, 4).toString());
-        
+
         employeeIDField.setFocusable(false);
         lastnameField.setFocusable(false);
         firstnameField.setFocusable(false);
         positionField.setEnabled(false);
         contactField.setFocusable(false);
-        
-        
+
         addBtn.setEnabled(false);
-        
+
         deleteBtn.setEnabled(true);
         editBtn.setEnabled(true);
-                
+
     }//GEN-LAST:event_employeeTableMouseClicked
 
     private void editBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editBtnActionPerformed
         saveBtn.setEnabled(true);
-        
+
         employeeIDField.setFocusable(true);
         lastnameField.setFocusable(true);
         firstnameField.setFocusable(true);
@@ -543,7 +665,116 @@ public class AddEmployee extends javax.swing.JFrame {
 
     private void deleteBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteBtnActionPerformed
         // TODO add your handling code here:
+        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+
+        if (employeeTable.getSelectedRowCount() == 1) {
+            int addConfirmationChoice = JOptionPane.showConfirmDialog(frame, "Are you sure you want to delete " + lastnameField.getText() + "'s information?", "Confirm employee deletion", JOptionPane.YES_NO_OPTION);
+            if (addConfirmationChoice == JOptionPane.YES_OPTION) {
+                model.removeRow(employeeTable.getSelectedRow());
+
+                deleteRow(employeeIDField.getText());
+                tbload();
+            } else {
+//               this.dispose();
+            }
+        } else if (employeeTable.getSelectedRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Table is Empty");
+        } else {
+            JOptionPane.showMessageDialog(this, "Select any single row");
+        }
+
     }//GEN-LAST:event_deleteBtnActionPerformed
+
+    private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
+
+        employeeIDField.setFocusable(true);
+        lastnameField.setFocusable(true);
+        firstnameField.setFocusable(true);
+        positionField.setEnabled(true);
+        contactField.setFocusable(true);
+
+        employeeIDField.setText(null);
+        lastnameField.setText(null);
+        firstnameField.setText(null);
+        positionField.setSelectedIndex(0);
+        contactField.setText(null);
+        employeeTable.clearSelection();
+        row = -1;
+        clearBtn.setEnabled(false);
+
+    }//GEN-LAST:event_clearBtnActionPerformed
+
+    private void prevBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prevBtnActionPerformed
+        int rowCount = employeeTable.getRowCount();
+        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+        if (row == -1) {
+            row++;
+        } else if (row == 0) {
+            row = rowCount - 1;
+        } else {
+            row--;
+        }
+
+        employeeIDField.setFocusable(false);
+        lastnameField.setFocusable(false);
+        firstnameField.setFocusable(false);
+        positionField.setEnabled(false);
+        contactField.setFocusable(false);
+
+        employeeTable.changeSelection(row, 0, false, false);
+        employeeIDField.setText(model.getValueAt(row, 0).toString());
+        lastnameField.setText(model.getValueAt(row, 1).toString());
+        firstnameField.setText(model.getValueAt(row, 2).toString());
+        positionField.setSelectedItem(model.getValueAt(row, 3).toString());
+        contactField.setText(model.getValueAt(row, 4).toString());
+        
+        clearBtn.setEnabled(true);
+    }//GEN-LAST:event_prevBtnActionPerformed
+
+    private void lastnameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_lastnameKeyTyped
+        if (!lastnameField.getText().equals("")) {
+            clearBtn.setEnabled(true);
+        }
+    }//GEN-LAST:event_lastnameKeyTyped
+
+    private void lastnameFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_lastnameFieldFocusLost
+        if (lastnameField.getText().length() <= 1) {
+            JOptionPane.showMessageDialog(this, "Atleast put 2 characters in your Last name.");
+        }
+    }//GEN-LAST:event_lastnameFieldFocusLost
+
+    private void firstnameFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_firstnameFieldFocusLost
+        if (firstnameField.getText().length() <= 1) {
+            JOptionPane.showMessageDialog(this, "Atleast put 2 characters in your First name.");
+        }
+    }//GEN-LAST:event_firstnameFieldFocusLost
+
+    private void lastnameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lastnameFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_lastnameFieldActionPerformed
+
+    private void contactFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contactFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_contactFieldActionPerformed
+
+    private void contactFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_contactFieldFocusLost
+        
+        boolean isNumber = checkIfNumber(contactField.getText());
+        if(isNumber) {
+            if (contactField.getText().length() <= 1) {
+            JOptionPane.showMessageDialog(this, "11 characters are required in contact field.");
+        }
+        }
+    }//GEN-LAST:event_contactFieldFocusLost
+
+    private void contactFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_contactFieldKeyTyped
+        boolean isNumber = checkIfNumber(contactField.getText());
+        if(!isNumber || !contactField.getText().equals("")) {
+            if(contactClear()) {
+                JOptionPane.showMessageDialog(this, "Contact field must be a number.");
+            }
+        }
+    }//GEN-LAST:event_contactFieldKeyTyped
 
     /**
      * @param args the command line arguments
@@ -578,11 +809,12 @@ public class AddEmployee extends javax.swing.JFrame {
                 new AddEmployee().setVisible(true);
             }
         });
-        
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addBtn;
+    private javax.swing.JButton clearBtn;
     private javax.swing.JButton closeBtn;
     private javax.swing.JTextField contactField;
     private javax.swing.JButton deleteBtn;
@@ -600,6 +832,7 @@ public class AddEmployee extends javax.swing.JFrame {
     private javax.swing.JTextField lastnameField;
     private javax.swing.JButton nextBtn;
     private javax.swing.JComboBox<String> positionField;
+    private javax.swing.JButton prevBtn;
     private javax.swing.JButton saveBtn;
     // End of variables declaration//GEN-END:variables
 }

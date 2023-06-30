@@ -28,7 +28,7 @@ public class LoginForm extends javax.swing.JFrame {
         
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee_database", "root", "admin");
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee-database", "root", "root");
             System.out.print(conn);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
