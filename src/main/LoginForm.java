@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package main;
+
 import java.awt.Color;
 import java.sql.*;
 import java.util.logging.Level;
@@ -18,14 +19,13 @@ public class LoginForm extends javax.swing.JFrame {
     /**
      * Creates new form LoginForm
      */
-    
-        Connection conn;
-        PreparedStatement ps;
-        ResultSet rs;
-        
+    Connection conn;
+    PreparedStatement ps;
+    ResultSet rs;
+
     public LoginForm() {
         initComponents();
-        
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/employee-database", "root", "root");
@@ -35,6 +35,7 @@ public class LoginForm extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
         }
+
     }
 
     /**
@@ -48,7 +49,7 @@ public class LoginForm extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         usernameField = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        signinBtn = new javax.swing.JButton();
         passwordField = new javax.swing.JPasswordField();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -74,10 +75,16 @@ public class LoginForm extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setText("SIGN IN");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        signinBtn.setText("SIGN IN");
+        signinBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                signinBtnActionPerformed(evt);
+            }
+        });
+
+        passwordField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                passwordFieldActionPerformed(evt);
             }
         });
 
@@ -94,7 +101,7 @@ public class LoginForm extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                         .addComponent(usernameField, javax.swing.GroupLayout.PREFERRED_SIZE, 273, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 273, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(signinBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 273, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, 273, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                             .addGap(8, 8, 8)
@@ -103,13 +110,13 @@ public class LoginForm extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGap(6, 6, 6)
                         .addComponent(jLabel2)))
-                .addContainerGap(49, Short.MAX_VALUE))
+                .addContainerGap(47, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel2)
                 .addGap(2, 2, 2)
                 .addComponent(usernameField, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -117,54 +124,108 @@ public class LoginForm extends javax.swing.JFrame {
                 .addComponent(jLabel3)
                 .addGap(2, 2, 2)
                 .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(36, 36, 36)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(117, Short.MAX_VALUE))
+                .addGap(26, 26, 26)
+                .addComponent(signinBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(99, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void usernameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usernameFieldActionPerformed
-        
-    }//GEN-LAST:event_usernameFieldActionPerformed
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String username = usernameField.getText();                                     
-        String password = new String (passwordField.getPassword());
-        
-        try {
-            ps = conn.prepareStatement("SELECT * FROM admin");
-            rs = ps.executeQuery();
-            
-            while(rs.next()) {
-                String usernamedb = rs.getString("username");
-                String passworddb = rs.getString("password");
-                
-                if(username.equals(usernamedb) && username.equals(passworddb)) {
+        if (username.equals("")
+                || password.equals("")) {
+            JOptionPane.showMessageDialog(this, "Please complete all the fields.");
+        } else {
+            try {
+                String query = "SELECT * FROM admin WHERE username = ? AND password = ?";
+                ps = conn.prepareStatement(query);
+                ps.setString(1, username);
+                ps.setString(2, password);
+                rs = ps.executeQuery();
+
+                if (rs.next()) {
                     new AddEmployee().setVisible(true);
                     this.setVisible(false);
                 } else {
-                    JOptionPane.showMessageDialog(this, "wrong credentials!");
+                    JOptionPane.showMessageDialog(this, "Wrong credentials!");
                 }
-                
+            } catch (SQLException ex) {
+                Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_usernameFieldActionPerformed
+
+    private void signinBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_signinBtnActionPerformed
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+
+        if (username.equals("")
+                || password.equals("")) {
+            JOptionPane.showMessageDialog(this, "Please complete all the fields.");
+        } else {
+            try {
+                String query = "SELECT * FROM admin WHERE username = ? AND password = ?";
+                ps = conn.prepareStatement(query);
+                ps.setString(1, username);
+                ps.setString(2, password);
+                rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    new AddEmployee().setVisible(true);
+                    this.setVisible(false);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Wrong credentials!");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+
+    }//GEN-LAST:event_signinBtnActionPerformed
 
     private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
-         this.requestFocusInWindow();
+        this.requestFocusInWindow();
     }//GEN-LAST:event_formWindowGainedFocus
+
+    private void passwordFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passwordFieldActionPerformed
+        // TODO add your handling code here:
+        String username = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+
+        if (username.equals("")
+                || password.equals("")) {
+            JOptionPane.showMessageDialog(this, "Please complete all the fields.");
+        } else {
+            try {
+                String query = "SELECT * FROM admin WHERE username = ? AND password = ?";
+                ps = conn.prepareStatement(query);
+                ps.setString(1, username);
+                ps.setString(2, password);
+                rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    new AddEmployee().setVisible(true);
+                    this.setVisible(false);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Wrong credentials!");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_passwordFieldActionPerformed
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
-        
-        
+
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -186,7 +247,7 @@ public class LoginForm extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(LoginForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
+
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -197,11 +258,11 @@ public class LoginForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPasswordField passwordField;
+    private javax.swing.JButton signinBtn;
     private javax.swing.JTextField usernameField;
     // End of variables declaration//GEN-END:variables
 }

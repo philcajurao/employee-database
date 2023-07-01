@@ -4,6 +4,7 @@
  */
 package main;
 
+import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -33,6 +34,7 @@ public class AddEmployee extends javax.swing.JFrame {
     PreparedStatement ps;
     ResultSet rs;
     int row = -1;
+    boolean isEditActive = false;
 
     public AddEmployee() {
 
@@ -50,9 +52,11 @@ public class AddEmployee extends javax.swing.JFrame {
         tbload();
 
         saveBtn.setEnabled(false);
+        addBtn.setEnabled(false);
         deleteBtn.setEnabled(false);
         editBtn.setEnabled(false);
         clearBtn.setEnabled(false);
+        cancelBtn.setEnabled(false);
     }
 
     public void tbload() {
@@ -92,10 +96,10 @@ public class AddEmployee extends javax.swing.JFrame {
             ps.execute();
             JOptionPane.showMessageDialog(this, "Deleted");
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "" + e);
+            JOptionPane.showMessageDialog(this, "" + e);
         }
     }
-    
+
     public boolean contactClear() {
         try {
             contactField.setText("");
@@ -117,18 +121,39 @@ public class AddEmployee extends javax.swing.JFrame {
                 return false; // or any appropriate value if no result is found
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e);
+            JOptionPane.showMessageDialog(this, e);
             return true;
         }
 
     }
-    
+
     public boolean checkIfNumber(String input) {
         try {
             Double.parseDouble(input);
             return true;
         } catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    public void checkFieldsIfEmpty() {
+        if (employeeIDField.getText().equals("")
+                || lastnameField.getText().equals("")
+                || firstnameField.getText().equals("")
+                || contactField.getText().length() != 9) {
+            addBtn.setEnabled(false);
+            saveBtn.setEnabled(false);
+        } else if (isEditActive) {
+            addBtn.setEnabled(false);
+            saveBtn.setEnabled(true);
+            clearBtn.setEnabled(true);
+        } else {
+            addBtn.setEnabled(true);
+            if (isEditActive) {
+                saveBtn.setEnabled(true);
+            } else {
+                saveBtn.setEnabled(false);
+            }
         }
     }
 
@@ -168,6 +193,9 @@ public class AddEmployee extends javax.swing.JFrame {
         deleteBtn = new javax.swing.JButton();
         clearBtn = new javax.swing.JButton();
         prevBtn = new javax.swing.JButton();
+        contactField1 = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        cancelBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -190,9 +218,9 @@ public class AddEmployee extends javax.swing.JFrame {
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel6.setText("Position:");
 
-        jLabel7.setFont(new java.awt.Font("Verdana", 0, 16)); // NOI18N
-        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel7.setText("Contact No:");
+        jLabel7.setFont(new java.awt.Font("Verdana", 0, 12)); // NOI18N
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel7.setText("-");
 
         employeeIDField.setEditable(false);
         employeeIDField.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -200,52 +228,31 @@ public class AddEmployee extends javax.swing.JFrame {
                 employeeIDFieldFocusGained(evt);
             }
         });
-        employeeIDField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                employeeIDFieldActionPerformed(evt);
-            }
-        });
 
-        lastnameField.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                lastnameFieldFocusLost(evt);
-            }
-        });
-        lastnameField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                lastnameFieldActionPerformed(evt);
-            }
-        });
         lastnameField.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                lastnameKeyTyped(evt);
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                lastnameFieldKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                lastnameFieldKeyReleased(evt);
             }
         });
 
-        firstnameField.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                firstnameFieldFocusLost(evt);
+        firstnameField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                firstnameFieldKeyPressed(evt);
             }
-        });
-        firstnameField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                firstnameFieldActionPerformed(evt);
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                firstnameFieldKeyReleased(evt);
             }
         });
 
-        contactField.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                contactFieldFocusLost(evt);
-            }
-        });
-        contactField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                contactFieldActionPerformed(evt);
-            }
-        });
         contactField.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                contactFieldKeyTyped(evt);
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                contactFieldKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                contactFieldKeyReleased(evt);
             }
         });
 
@@ -300,7 +307,7 @@ public class AddEmployee extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(employeeTable);
 
-        positionField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "CEO", "Chairman", "Sr. Engineer", "Mid Engineer", "Jr. Engineer" }));
+        positionField.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Jr. Engineer", "Mid Engineer", "Sr. Engineer", "Team Lead", "CEO" }));
 
         editBtn.setText("EDIT");
         editBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -330,6 +337,34 @@ public class AddEmployee extends javax.swing.JFrame {
             }
         });
 
+        contactField1.setEditable(false);
+        contactField1.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        contactField1.setText("09");
+        contactField1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                contactField1FocusGained(evt);
+            }
+        });
+        contactField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                contactField1KeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                contactField1KeyReleased(evt);
+            }
+        });
+
+        jLabel8.setFont(new java.awt.Font("Verdana", 0, 16)); // NOI18N
+        jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel8.setText("Phone No:");
+
+        cancelBtn.setText("CANCEL");
+        cancelBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -337,48 +372,56 @@ public class AddEmployee extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addContainerGap(171, Short.MAX_VALUE)
+                        .addContainerGap(173, Short.MAX_VALUE)
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 558, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(49, 49, 49)
                         .addComponent(closeBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
+                                .addGap(34, 34, 34)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(deleteBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(cancelBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(clearBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(saveBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)))))
+                            .addGroup(layout.createSequentialGroup()
                                 .addGap(16, 16, 16)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                                     .addComponent(addBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(jLabel7)
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                .addGroup(layout.createSequentialGroup()
-                                                    .addComponent(jLabel3)
-                                                    .addGap(0, 5, Short.MAX_VALUE))
-                                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                    .addGap(0, 0, Short.MAX_VALUE)
-                                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING)
-                                                        .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING)))))
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jLabel3)
+                                                .addGap(0, 5, Short.MAX_VALUE))
+                                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addGap(0, 0, Short.MAX_VALUE)
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING)
+                                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                        .addComponent(jLabel8)
+                                                        .addComponent(jLabel6)))))
                                         .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                            .addComponent(contactField)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(contactField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(0, 0, 0)
+                                                .addComponent(jLabel7)
+                                                .addGap(0, 0, 0)
+                                                .addComponent(contactField))
                                             .addComponent(firstnameField, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
                                             .addComponent(lastnameField)
                                             .addComponent(employeeIDField)
                                             .addComponent(positionField, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(34, 34, 34)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(clearBtn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(deleteBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(saveBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, Short.MAX_VALUE)))))
+                                .addGap(0, 0, Short.MAX_VALUE)))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -415,8 +458,10 @@ public class AddEmployee extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(contactField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel7))
-                        .addGap(51, 51, 51)
+                            .addComponent(contactField1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel8))
+                        .addGap(46, 46, 46)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(addBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -429,8 +474,9 @@ public class AddEmployee extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(nextBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(clearBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(prevBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(13, Short.MAX_VALUE))
+                    .addComponent(prevBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cancelBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
 
         pack();
@@ -440,19 +486,13 @@ public class AddEmployee extends javax.swing.JFrame {
 
     private void addBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBtnActionPerformed
 
-        if (employeeIDField.getText().equals("")) {
+        if (lastnameField.getText().length() <= 1) {
 
-            JOptionPane.showMessageDialog(null, "Employee ID field is empty!");
-
-        } else if (lastnameField.getText().length() <= 1) {
-
-            JOptionPane.showMessageDialog(null, "Last name field must be 2 characters atleast!");
-            lastnameField.requestFocusInWindow();
+            JOptionPane.showMessageDialog(this, "Last name field must be 2 characters atleast!");
 
         } else if (firstnameField.getText().length() <= 1) {
 
-            JOptionPane.showMessageDialog(null, "First name field must be 2 characters atleast!");
-            firstnameField.requestFocusInWindow();
+            JOptionPane.showMessageDialog(this, "First name field must be 2 characters atleast!");
 
         } else {
 
@@ -469,11 +509,11 @@ public class AddEmployee extends javax.swing.JFrame {
                     ps.setString(2, lastnameField.getText());
                     ps.setString(3, firstnameField.getText());
                     ps.setString(4, (String) positionField.getSelectedItem());
-                    ps.setString(5, contactField.getText());
+                    ps.setString(5, "09" + contactField.getText());
 
                     ps.executeUpdate();
 
-                    JOptionPane.showMessageDialog(null, "New employee added!");
+                    JOptionPane.showMessageDialog(this, "New employee added!");
                     rs.close();
                     ps.close();
 
@@ -482,9 +522,11 @@ public class AddEmployee extends javax.swing.JFrame {
                     firstnameField.setText(null);
                     positionField.setSelectedIndex(0);
                     contactField.setText(null);
+                    addBtn.setEnabled(false);
+                    clearBtn.setEnabled(false);
 
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, e);
+                    JOptionPane.showMessageDialog(this, e);
                 } finally {
                     try {
                         rs.close();
@@ -502,18 +544,14 @@ public class AddEmployee extends javax.swing.JFrame {
     }//GEN-LAST:event_addBtnActionPerformed
 
     private void saveBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBtnActionPerformed
-        if (employeeIDField.getText().equals("")) {
+        if (lastnameField.getText().length() <= 1) {
 
-            JOptionPane.showMessageDialog(null, "Employee ID field is empty!");
-
-        } else if (lastnameField.getText().length() <= 1) {
-
-            JOptionPane.showMessageDialog(null, "Last name field must be 2 characters atleast!");
+            JOptionPane.showMessageDialog(this, "Last name field must be 2 characters atleast!");
             lastnameField.requestFocusInWindow();
 
         } else if (firstnameField.getText().length() <= 1) {
 
-            JOptionPane.showMessageDialog(null, "First name field must be 2 characters atleast!");
+            JOptionPane.showMessageDialog(this, "First name field must be 2 characters atleast!");
             firstnameField.requestFocusInWindow();
 
         } else {
@@ -523,7 +561,7 @@ public class AddEmployee extends javax.swing.JFrame {
 
                 DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
                 model.setRowCount(0);
-                String sql = "UPDATE employees SET lastname='" + lastnameField.getText() + "', firstname='" + firstnameField.getText() + "', position='" + positionField.getSelectedItem() + "', contact='" + contactField.getText() + "' WHERE employeeID='" + employeeIDField.getText() + "' ";
+                String sql = "UPDATE employees SET lastname='" + lastnameField.getText() + "', firstname='" + firstnameField.getText() + "', position='" + positionField.getSelectedItem() + "', contact='" + "09" + contactField.getText() + "' WHERE employeeID='" + employeeIDField.getText() + "' ";
                 try {
                     ps = conn.prepareStatement(sql);
 
@@ -552,7 +590,12 @@ public class AddEmployee extends javax.swing.JFrame {
                     saveBtn.setEnabled(false);
                     deleteBtn.setEnabled(false);
                     editBtn.setEnabled(false);
-                    addBtn.setEnabled(true);
+                    cancelBtn.setEnabled(false);
+                    clearBtn.setEnabled(false);
+                    employeeTable.setEnabled(true);
+                    nextBtn.setEnabled(true);
+                    prevBtn.setEnabled(true);
+                    isEditActive = false;
 
                 }
             } else {
@@ -578,14 +621,22 @@ public class AddEmployee extends javax.swing.JFrame {
         positionField.setEnabled(false);
         contactField.setFocusable(false);
 
+        String contactFieldValue = model.getValueAt(row, 4).toString();
+        if (contactFieldValue.length() > 2) {
+            contactFieldValue = contactFieldValue.substring(2);
+        }
+
         employeeTable.changeSelection(row, 0, false, false);
         employeeIDField.setText(model.getValueAt(row, 0).toString());
         lastnameField.setText(model.getValueAt(row, 1).toString());
         firstnameField.setText(model.getValueAt(row, 2).toString());
         positionField.setSelectedItem(model.getValueAt(row, 3).toString());
-        contactField.setText(model.getValueAt(row, 4).toString());
+        contactField.setText(contactFieldValue);
 
+        addBtn.setEnabled(false);
         clearBtn.setEnabled(true);
+        deleteBtn.setEnabled(true);
+        editBtn.setEnabled(true);
 
     }//GEN-LAST:event_nextBtnActionPerformed
 
@@ -595,10 +646,6 @@ public class AddEmployee extends javax.swing.JFrame {
             System.exit(0);
         }
     }//GEN-LAST:event_closeBtnActionPerformed
-
-    private void employeeIDFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_employeeIDFieldActionPerformed
-
-    }//GEN-LAST:event_employeeIDFieldActionPerformed
 
     private void employeeIDFieldFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_employeeIDFieldFocusGained
         if (employeeIDField.getText().equals("")) {
@@ -620,41 +667,56 @@ public class AddEmployee extends javax.swing.JFrame {
             firstnameField.setFocusable(true);
             positionField.setEnabled(true);
             contactField.setFocusable(true);
+            checkFieldsIfEmpty();
+            clearBtn.setEnabled(true);
 
         }
 
     }//GEN-LAST:event_employeeIDFieldFocusGained
 
-    private void firstnameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_firstnameFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_firstnameFieldActionPerformed
-
     private void employeeTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_employeeTableMouseClicked
 
-        int row = employeeTable.getSelectedRow();
-        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+        if (!isEditActive) {
+            int rowClickedByMouse = employeeTable.getSelectedRow();
+            DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+            row = rowClickedByMouse;
 
-        employeeIDField.setText(model.getValueAt(row, 0).toString());
-        lastnameField.setText(model.getValueAt(row, 1).toString());
-        firstnameField.setText(model.getValueAt(row, 2).toString());
-        positionField.setSelectedItem(model.getValueAt(row, 3).toString());
-        contactField.setText(model.getValueAt(row, 4).toString());
+            String contactFieldValue = model.getValueAt(rowClickedByMouse, 4).toString();
+            if (contactFieldValue.length() > 2) {
+                contactFieldValue = contactFieldValue.substring(2);
+            }
 
-        employeeIDField.setFocusable(false);
-        lastnameField.setFocusable(false);
-        firstnameField.setFocusable(false);
-        positionField.setEnabled(false);
-        contactField.setFocusable(false);
+            employeeIDField.setText(model.getValueAt(rowClickedByMouse, 0).toString());
+            lastnameField.setText(model.getValueAt(rowClickedByMouse, 1).toString());
+            firstnameField.setText(model.getValueAt(rowClickedByMouse, 2).toString());
+            positionField.setSelectedItem(model.getValueAt(rowClickedByMouse, 3).toString());
+            contactField.setText(contactFieldValue);
 
-        addBtn.setEnabled(false);
+            employeeIDField.setFocusable(false);
+            lastnameField.setFocusable(false);
+            firstnameField.setFocusable(false);
+            positionField.setEnabled(false);
+            contactField.setFocusable(false);
 
-        deleteBtn.setEnabled(true);
-        editBtn.setEnabled(true);
+            addBtn.setEnabled(false);
+            clearBtn.setEnabled(true);
+            deleteBtn.setEnabled(true);
+            editBtn.setEnabled(true);
+        }
+
 
     }//GEN-LAST:event_employeeTableMouseClicked
 
     private void editBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editBtnActionPerformed
-        saveBtn.setEnabled(true);
+
+        employeeTable.setEnabled(false);
+        deleteBtn.setEnabled(false);
+        addBtn.setEnabled(false);
+        nextBtn.setEnabled(false);
+        prevBtn.setEnabled(false);
+        cancelBtn.setEnabled(true);
+        isEditActive = true;
+        checkFieldsIfEmpty();
 
         employeeIDField.setFocusable(true);
         lastnameField.setFocusable(true);
@@ -673,14 +735,30 @@ public class AddEmployee extends javax.swing.JFrame {
                 model.removeRow(employeeTable.getSelectedRow());
 
                 deleteRow(employeeIDField.getText());
+
+                employeeIDField.setFocusable(true);
+                lastnameField.setFocusable(true);
+                firstnameField.setFocusable(true);
+                positionField.setEnabled(true);
+                contactField.setFocusable(true);
+
+                employeeIDField.setText(null);
+                lastnameField.setText(null);
+                firstnameField.setText(null);
+                contactField.setText(null);
+                employeeTable.clearSelection();
+
+                clearBtn.setEnabled(false);
+                editBtn.setEnabled(false);
+                deleteBtn.setEnabled(false);
                 tbload();
             } else {
 //               this.dispose();
             }
         } else if (employeeTable.getSelectedRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "Table is Empty");
+            JOptionPane.showMessageDialog(this, "Select a row in the table");
         } else {
-            JOptionPane.showMessageDialog(this, "Select any single row");
+            JOptionPane.showMessageDialog(this, "Please just select a single row");
         }
 
     }//GEN-LAST:event_deleteBtnActionPerformed
@@ -693,15 +771,29 @@ public class AddEmployee extends javax.swing.JFrame {
         positionField.setEnabled(true);
         contactField.setFocusable(true);
 
-        employeeIDField.setText(null);
-        lastnameField.setText(null);
-        firstnameField.setText(null);
-        positionField.setSelectedIndex(0);
-        contactField.setText(null);
-        employeeTable.clearSelection();
-        row = -1;
-        clearBtn.setEnabled(false);
+        if (isEditActive) {
+            lastnameField.setText(null);
+            firstnameField.setText(null);
+            positionField.setSelectedIndex(0);
+            contactField.setText(null);
 
+            editBtn.setEnabled(true);
+            deleteBtn.setEnabled(false);
+        } else {
+            employeeIDField.setText(null);
+            lastnameField.setText(null);
+            firstnameField.setText(null);
+            positionField.setSelectedIndex(0);
+            contactField.setText(null);
+            employeeTable.clearSelection();
+            row = -1;
+
+            editBtn.setEnabled(false);
+            deleteBtn.setEnabled(false);
+        }
+
+        clearBtn.setEnabled(false);
+        checkFieldsIfEmpty();
     }//GEN-LAST:event_clearBtnActionPerformed
 
     private void prevBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prevBtnActionPerformed
@@ -721,60 +813,141 @@ public class AddEmployee extends javax.swing.JFrame {
         positionField.setEnabled(false);
         contactField.setFocusable(false);
 
+        String contactFieldValue = model.getValueAt(row, 4).toString();
+        if (contactFieldValue.length() > 2) {
+            contactFieldValue = contactFieldValue.substring(2);
+        }
+
         employeeTable.changeSelection(row, 0, false, false);
         employeeIDField.setText(model.getValueAt(row, 0).toString());
         lastnameField.setText(model.getValueAt(row, 1).toString());
         firstnameField.setText(model.getValueAt(row, 2).toString());
         positionField.setSelectedItem(model.getValueAt(row, 3).toString());
-        contactField.setText(model.getValueAt(row, 4).toString());
-        
+        contactField.setText(contactFieldValue);
+
+        addBtn.setEnabled(false);
         clearBtn.setEnabled(true);
+        deleteBtn.setEnabled(true);
+        editBtn.setEnabled(true);
     }//GEN-LAST:event_prevBtnActionPerformed
 
-    private void lastnameKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_lastnameKeyTyped
-        if (!lastnameField.getText().equals("")) {
-            clearBtn.setEnabled(true);
-        }
-    }//GEN-LAST:event_lastnameKeyTyped
-
-    private void lastnameFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_lastnameFieldFocusLost
-        if (lastnameField.getText().length() <= 1) {
-            JOptionPane.showMessageDialog(this, "Atleast put 2 characters in your Last name.");
-        }
-    }//GEN-LAST:event_lastnameFieldFocusLost
-
-    private void firstnameFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_firstnameFieldFocusLost
-        if (firstnameField.getText().length() <= 1) {
-            JOptionPane.showMessageDialog(this, "Atleast put 2 characters in your First name.");
-        }
-    }//GEN-LAST:event_firstnameFieldFocusLost
-
-    private void lastnameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lastnameFieldActionPerformed
+    private void contactFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_contactFieldKeyPressed
         // TODO add your handling code here:
-    }//GEN-LAST:event_lastnameFieldActionPerformed
+        String contactFieldValue = contactField.getText();
+        int contactFieldValueLength = contactFieldValue.length();
+        char characterTyped = evt.getKeyChar();
+        //numbers only
+        if (characterTyped >= '0' && characterTyped <= '9') {
+            //check length max 11 digit
+            if (contactFieldValueLength < 9) {
+                contactField.setEditable(true);
+                clearBtn.setEnabled(true);
+            } else {
+                contactField.setEditable(false);
+            }
 
-    private void contactFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contactFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_contactFieldActionPerformed
-
-    private void contactFieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_contactFieldFocusLost
-        
-        boolean isNumber = checkIfNumber(contactField.getText());
-        if(isNumber) {
-            if (contactField.getText().length() <= 1) {
-            JOptionPane.showMessageDialog(this, "11 characters are required in contact field.");
-        }
-        }
-    }//GEN-LAST:event_contactFieldFocusLost
-
-    private void contactFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_contactFieldKeyTyped
-        boolean isNumber = checkIfNumber(contactField.getText());
-        if(!isNumber || !contactField.getText().equals("")) {
-            if(contactClear()) {
-                JOptionPane.showMessageDialog(this, "Contact field must be a number.");
+        } else {
+            if (evt.getExtendedKeyCode() == KeyEvent.VK_BACK_SPACE || evt.getExtendedKeyCode() == KeyEvent.VK_DELETE) {
+                contactField.setEditable(true);
+            } else {
+                contactField.setEditable(false);
             }
         }
-    }//GEN-LAST:event_contactFieldKeyTyped
+    }//GEN-LAST:event_contactFieldKeyPressed
+
+    private void firstnameFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_firstnameFieldKeyPressed
+        // TODO add your handling code here:
+        char characterTyped = evt.getKeyChar();
+
+        if (Character.isLetter(characterTyped) || Character.isWhitespace(characterTyped) || Character.isISOControl(characterTyped)) {
+            firstnameField.setEditable(true);
+            clearBtn.setEnabled(true);
+        } else {
+            firstnameField.setEditable(false);
+        }
+    }//GEN-LAST:event_firstnameFieldKeyPressed
+
+    private void lastnameFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_lastnameFieldKeyPressed
+        // TODO add your handling code here:
+        char characterTyped = evt.getKeyChar();
+
+        if (Character.isLetter(characterTyped) || Character.isWhitespace(characterTyped) || Character.isISOControl(characterTyped)) {
+            lastnameField.setEditable(true);
+            clearBtn.setEnabled(true);
+        } else {
+            lastnameField.setEditable(false);
+        }
+    }//GEN-LAST:event_lastnameFieldKeyPressed
+
+    private void lastnameFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_lastnameFieldKeyReleased
+        // TODO add your handling code here:
+        checkFieldsIfEmpty();
+    }//GEN-LAST:event_lastnameFieldKeyReleased
+
+    private void firstnameFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_firstnameFieldKeyReleased
+        // TODO add your handling code here:
+        checkFieldsIfEmpty();
+    }//GEN-LAST:event_firstnameFieldKeyReleased
+
+    private void contactFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_contactFieldKeyReleased
+        // TODO add your handling code here:
+        checkFieldsIfEmpty();
+    }//GEN-LAST:event_contactFieldKeyReleased
+
+    private void contactField1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_contactField1FocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_contactField1FocusGained
+
+    private void contactField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_contactField1KeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_contactField1KeyPressed
+
+    private void contactField1KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_contactField1KeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_contactField1KeyReleased
+
+    private void cancelBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelBtnActionPerformed
+        // TODO add your handling code here:
+        saveBtn.setEnabled(false);
+        deleteBtn.setEnabled(true);
+        addBtn.setEnabled(false);
+        cancelBtn.setEnabled(false);
+        isEditActive = false;
+
+        nextBtn.setEnabled(!isEditActive);
+        prevBtn.setEnabled(!isEditActive);
+        employeeTable.setEnabled(true);
+        employeeIDField.setFocusable(false);
+        lastnameField.setFocusable(false);
+        firstnameField.setFocusable(false);
+        positionField.setEnabled(false);
+        contactField.setFocusable(false);
+
+        int row = employeeTable.getSelectedRow();
+        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
+
+        String contactFieldValue = model.getValueAt(row, 4).toString();
+        if (contactFieldValue.length() > 2) {
+            contactFieldValue = contactFieldValue.substring(2);
+        }
+
+        employeeIDField.setText(model.getValueAt(row, 0).toString());
+        lastnameField.setText(model.getValueAt(row, 1).toString());
+        firstnameField.setText(model.getValueAt(row, 2).toString());
+        positionField.setSelectedItem(model.getValueAt(row, 3).toString());
+        contactField.setText(contactFieldValue);
+
+        employeeIDField.setFocusable(false);
+        lastnameField.setFocusable(false);
+        firstnameField.setFocusable(false);
+        positionField.setEnabled(false);
+        contactField.setFocusable(false);
+
+        addBtn.setEnabled(false);
+        clearBtn.setEnabled(true);
+        deleteBtn.setEnabled(true);
+        editBtn.setEnabled(true);
+    }//GEN-LAST:event_cancelBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -814,9 +987,11 @@ public class AddEmployee extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addBtn;
+    private javax.swing.JButton cancelBtn;
     private javax.swing.JButton clearBtn;
     private javax.swing.JButton closeBtn;
     private javax.swing.JTextField contactField;
+    private javax.swing.JTextField contactField1;
     private javax.swing.JButton deleteBtn;
     private javax.swing.JButton editBtn;
     private javax.swing.JTextField employeeIDField;
@@ -828,6 +1003,7 @@ public class AddEmployee extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextField lastnameField;
     private javax.swing.JButton nextBtn;
